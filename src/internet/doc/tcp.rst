@@ -1035,11 +1035,17 @@ ECN capability is negotiated during the three-way TCP handshake:
           }
          }
 
-3. Sender sends ACK if it receives SYN+ACK without CE
+4. receiver sends SYN+ACK+ECE with not-ect in IP header as a response to ACK+ECE
 
-::
-
+::  
+  if (m_ecnMode == EcnMode_t::EcnpTry && (tcpHeader.GetFlags () & (TcpHeader::ACK | TcpHeader::ECE)))
+   {
+     SendEmptyPacket ((TcpHeader::SYN | TcpHeader::ACK | TcpHeader::ECE),false); 
+   }
  
+5. Sender sends ACK if it receives SYN+ACK without CE i.e, either with ect(0) or not-ect 
+
+:: 
  if(tcpflags & (TcpHeader::SYN | TcpHeader::ACK ))
         {     
            if (m_ecnMode == EcnMode_t::ClassicEcn && (tcpflags & (TcpHeader::ECE)))
@@ -1054,7 +1060,6 @@ ECN capability is negotiated during the three-way TCP handshake:
           SendEmptyPacket ((TcpHeader::ACK),false);
           SendPendingData (m_connected);
          }
-
 
 ECN State Transitions during negotiation as defined in RFC 5562
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
